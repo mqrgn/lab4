@@ -59,7 +59,68 @@ def get_crypto_info(coin_id):
         return f"⚠️ Произошла ошибка при запросе: {e}"
 
 
-
 # print(get_crypto_info("bitcoin"))
 # print(get_crypto_info("the-open-network"))
 # print(get_crypto_info("solana"))
+
+
+def get_watchlist_prices(coins_list):
+    if not coins_list:
+        return "Список пуст. Добавьте монеты!"
+
+    # Превращаем список ['bitcoin', 'solana'] в строку "bitcoin,solana"
+    ids_str = ",".join(coins_list)
+
+    url = "https://api.coingecko.com/api/v3/simple/price"
+    params = {
+        'ids': ids_str,
+        'vs_currencies': 'usd'
+    }
+
+    try:
+        response = requests.get(url, params=params)
+        data = response.json()
+
+        message = "<b>⭐ Ваши избранные монеты:</b>\n\n"
+
+        for coin in coins_list:
+            # Проверяем, вернул ли API цену (может монета указана неверно)
+            if coin in data:
+                price = data[coin]['usd']
+                message += f"🔹 <b>{coin.title()}:</b> ${price}\n"
+            else:
+                message += f"🔻 <i>{coin}</i>: ошибка (нет данных)\n"
+
+        return message
+    except Exception as e:
+        return f"Ошибка API: {e}"
+
+
+def valid_coin(coin_name):
+    try:
+        url = "https://api.coingecko.com/api/v3/simple/price"
+        params = {
+            'ids': coin_name,
+            'vs_currencies': 'usd'
+        }
+
+        response = requests.get(url, params=params, timeout=15)
+
+        # Проверяем статус ответа (на случай технических работ на API)
+        if response.status_code != 200:
+            return f"⚠️ Ошибка API CoinGecko. Код ответа: {response.status_code}, {response.text}"
+
+        data = response.json()
+
+        if not data:
+            return (
+                f"❌ Монета с ID <b>{coin_name}</b> не найдена.\n"
+                "💡 Вводите полное название, а не тикер (например: <code>bitcoin</code>, а не BTC).\n"
+                "👇 Попробуйте ввести название еще раз:"
+            )
+        return True
+
+    except requests.exceptions.ReadTimeout:
+        return "⚠️ Сервер не отвечает (таймаут). Попробуйте позже."
+    except Exception as e:
+        return f"⚠️ Произошла системная ошибка: {e}"
