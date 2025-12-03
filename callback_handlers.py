@@ -31,13 +31,11 @@ async def own_callback(callback: types.CallbackQuery, state: FSMContext) -> None
         [types.InlineKeyboardButton(text="Отмена", callback_data='menu')]
     ])
 
-    # Редактируем сообщение: просим ввести название
     await callback.message.edit_text(
         "✍️ <b>Введите название криптовалюты</b>\n"
         "(например: <code>bitcoin</code>, <code>ethereum</code>, <code>toncoin</code>)",
         reply_markup=kb)
 
-    # ВАЖНО: Устанавливаем состояние ожидания
     await state.set_state(CryptoState.waiting_for_coin_name)
 
 
